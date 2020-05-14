@@ -1,17 +1,17 @@
 <template>
   <section class="ui centered grid" style="margin-top: 30px">
     <div class="column" style="max-width: 450px;">
-      <form action="#" class="ui segment large form">
+      <p v-show="errors.length">
+          <b>Please correct the following error(s):</b>
+          <ul>
+            <li v-for="(error, index) in errors" :key="index">{{ error }}</li>
+          </ul>
+      </p>
+      <form action="#" class="ui segment large form" novalidate="true">
         <div class="ui segment">
           <div class="field">
             <div class="ui left icon input large">
-              <input
-                type="email"
-                placeholder="Email Address"
-                v-model="form.email"
-                required
-                v-focus
-              />
+              <input type="email" placeholder="Email Address" v-model="form.email" v-focus required />
               <i class="ui icon mail"></i>
             </div>
           </div>
@@ -49,11 +49,24 @@ export default {
 
   methods: {
     signIn() {
+      if (this.hasErrors()) return;
       this.$firebase
         .auth()
         .signInWithEmailAndPassword(this.form.email, this.form.password)
-        .then(user => console.log(user))
-        .catch(e => console.log(e));
+        .then(user => console.log("Sign In successful! Redirecting..."))
+        .catch(e => {
+          console.log(e);
+          this.errors.push(e.message);
+        });
+    },
+
+    hasErrors() {
+      this.errors = [];
+      if (this.form.email == null || this.form.email == "")
+        this.errors.push("Email is required!");
+      if (this.form.password == null || this.form.password == "")
+        this.errors.push("Password is required!");
+      return this.errors.length ? true : false;
     }
   }
 };
