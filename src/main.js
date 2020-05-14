@@ -3,8 +3,8 @@ import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
 import store from './store'
-import MyPlugin from '@/plugins/my-plugin';
-import vuetify from '@/plugins/vuetify';
+import MyPlugin from '@/plugins/my-plugin'
+import vuetify from '@/plugins/vuetify'
 
 
 Vue.config.productionTip = false
