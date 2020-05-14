@@ -10,7 +10,7 @@
                 placeholder="Email Address"
                 v-model="form.email"
                 required
-                autofocus
+                v-focus
               />
               <i class="ui icon mail"></i>
             </div>
@@ -23,7 +23,7 @@
             </div>
           </div>
 
-          <button class="ui button field large green" @click.prevent="signIn">Login</button>
+          <button class="ui button field large green" @click.prevent="signIn" type="submit">Login</button>
         </div>
       </form>
 

@@ -5,7 +5,7 @@
         <div class="ui segment">
           <div class="field">
             <div class="ui left icon input large">
-              <input type="text" placeholder="Name" v-model="form.name" required autofocus />
+              <input type="text" placeholder="Name" v-model="form.name" required v-focus />
               <i class="ui icon user"></i>
             </div>
           </div>
