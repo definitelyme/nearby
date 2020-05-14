@@ -5,14 +5,20 @@
         <div class="ui segment">
           <div class="field">
             <div class="ui left icon input large">
-              <input type="email" placeholder="Email Address" v-model="form.email" />
+              <input
+                type="email"
+                placeholder="Email Address"
+                v-model="form.email"
+                required
+                autofocus
+              />
               <i class="ui icon mail"></i>
             </div>
           </div>
 
           <div class="field">
             <div class="ui left icon input large">
-              <input type="password" placeholder="Password" v-model="form.password" />
+              <input type="password" placeholder="Password" v-model="form.password" required />
               <i class="ui icon lock"></i>
             </div>
           </div>
@@ -43,7 +49,8 @@ export default {
 
   methods: {
     signIn() {
-      this.$firebase.auth()
+      this.$firebase
+        .auth()
         .signInWithEmailAndPassword(this.form.email, this.form.password)
         .then(user => console.log(user))
         .catch(e => console.log(e));

@@ -5,21 +5,21 @@
         <div class="ui segment">
           <div class="field">
             <div class="ui left icon input large">
-              <input type="text" placeholder="Name" v-model="form.name" />
+              <input type="text" placeholder="Name" v-model="form.name" required autofocus />
               <i class="ui icon user"></i>
             </div>
           </div>
 
           <div class="field">
             <div class="ui left icon input large">
-              <input type="email" placeholder="Email Address" v-model="form.email" />
+              <input type="email" placeholder="Email Address" v-model="form.email" required />
               <i class="ui icon mail"></i>
             </div>
           </div>
 
           <div class="field">
             <div class="ui left icon input large">
-              <input type="password" placeholder="Password" v-model="form.password" />
+              <input type="password" placeholder="Password" v-model="form.password" required />
               <i class="ui icon lock"></i>
             </div>
           </div>
@@ -55,7 +55,9 @@ export default {
         .auth()
         .createUserWithEmailAndPassword(this.form.email, this.form.password)
         .then(user => {
-          console.log(`Name: ${this.form.name}, Email: ${user.email}, id: ${user.uid}`);
+          console.log(
+            `Name: ${this.form.name}, Email: ${user.email}, id: ${user.uid}`
+          );
           this.setUpUserProfile(user);
         })
         .catch(e => console.log(e));
@@ -63,14 +65,15 @@ export default {
 
     setUpUserProfile({ user }) {
       try {
-        this.$firestore.collection("users")
+        this.$firestore
+          .collection("users")
           .doc(user.uid)
           .set({
             name: this.form.name,
             email: user.email,
             active: false
           });
-          console.log("User created Successfully!");
+        console.log("User created Successfully!");
       } catch (e) {
         console.log(e);
       }
