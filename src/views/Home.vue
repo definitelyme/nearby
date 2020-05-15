@@ -96,7 +96,7 @@
           <v-list-item
             v-for="(item, index) in candidates"
             :key="index+item.name"
-            @click="setMarkerAndPanTo(item.geometry.location)"
+            @click="setMarkerAndPanTo(item.geometry.location, null)"
             ripple
           >
             <v-list-item-content>
@@ -177,8 +177,6 @@ export default {
       nearby__items: [],
       nearby: "", // Nearby value
       willSearchNearby: false,
-      response: null, // Response from the server for any request
-      responseReady: false,
       candidates: [], // Represents list of Places returned by search
       nearby_results: [],
       currentPosition: {
@@ -250,8 +248,6 @@ export default {
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
 
-      // this.geocoder = new google.maps.Geocoder();
-
       this.infoWindow = new google.maps.InfoWindow({ map: this.map });
     },
 
@@ -262,21 +258,25 @@ export default {
       if (marker == null) {
         // If marker == null, create a new marker
         marker = new google.maps.Marker({
-          position: this.currentPosition,
+          // position: this.currentPosition,
           map: this.map
         });
-        // marker.setPosition(new google.maps.LatLng(geometry.lat, geometry.lng));
-        this.setMarkerOnMap(this.map);
+
+        this.setMarkerOnMap(geometry);
       }
 
       // Push to markers array
       this.markers.push(marker);
     },
 
-    setMarkerOnMap(map) {
-      for (var i = 0; i < this.markers.length; i++) {
-        this.markers[i].setMap(this.map);
-      }
+    setMarkerOnMap(geometry) {
+      this.markers.map(marker => {
+        if (geometry == null) {
+          marker.setMap(null);
+          return;
+        }
+        marker.setPosition(new google.maps.LatLng(geometry.lat, geometry.lng));
+      });
     },
 
     clearMarkers() {
@@ -296,8 +296,8 @@ export default {
           // this.infoWindow.setContent("Location found.");
           // this.infoWindow.open(this.map);
           // this.infoWindow.setPosition(this.currentPosition);
-          this.clearMarkers();
-          this.setMarkerAndPanTo(this.currentPosition);
+          // this.clearMarkers();
+          this.setMarkerAndPanTo(this.currentPosition, null);
 
           // Save current location to firestore
           // this.saveCurrentLocation(this.currentPosition);
@@ -357,7 +357,7 @@ export default {
               map: this.map
             });
             this.setMarkerAndPanTo(candidate.geometry.location, newMarker);
-            this.setMarkerOnMap(this.map);
+            // this.setMarkerOnMap(this.map);
           });
         })
         .catch(e => console.log(e));
