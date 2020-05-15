@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="icon" href="/favicon.ico">
     <title>
-        <%= htmlWebpackPlugin.options.title %>
+        <%= VUE_APP_TITLE %>
     </title>
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
@@ -17,12 +17,12 @@
 
 <body>
     <noscript>
-        <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+        <strong>We're sorry but <%= VUE_APP_TITLE %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
       </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN4_MtrECieFiC2unjca-1G1foG8YkIx0" type="text/javascript"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=<%= VUE_APP_MAP_KEY %>" type="text/javascript"></script>
     <!-- <script type="text/javascript" src="http://www.google.com/jsapi"></script> -->
 </body>
 

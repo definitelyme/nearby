@@ -61,7 +61,7 @@
             @click:clear="isSearching = false"
           ></v-text-field>
           <v-spacer></v-spacer>
-          <v-btn icon @click="currentLocation">
+          <v-btn icon @click="userLocation">
             <v-icon>my_location</v-icon>
           </v-btn>
           <v-btn icon>
@@ -84,7 +84,7 @@
           ></v-text-field>
           <v-spacer></v-spacer>
 
-          <v-btn icon @click="currentLocation">
+          <v-btn icon @click="userLocation">
             <v-icon>my_location</v-icon>
           </v-btn>
           <v-btn icon>
@@ -138,7 +138,7 @@
       />
 
       <!-- My Location Icon -->
-      <v-card-text style="position: absolute; bottom: 35%;" class="pa-0" @click="currentLocation">
+      <v-card-text style="position: absolute; bottom: 35%;" class="pa-0" @click="userLocation">
         <v-fab-transition>
           <v-btn absolute fab top right>
             <v-icon>my_location</v-icon>
@@ -194,8 +194,8 @@ export default {
   computed: {
     url() {
       var proxyUrl = "https://morning-mountain-19254.herokuapp.com/";
-      const API_KEY = "AIzaSyA3pv09p5d-qDmu3cFkcQqcu09SQaKYnDo";
-      const RADIUS = `1200`;
+      const API_KEY = process.env.VUE_APP_PLACES_KEY;
+      const RADIUS = `300`;
       const INPUT_TYPES =
         "textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry";
       const LOCATION_BIAS = `circle:${RADIUS}@${this.currentPosition.lat},${this.currentPosition.lng}`;
@@ -262,8 +262,15 @@ export default {
           map: this.map
         });
 
+        // Set marker on map
         this.setMarkerOnMap(geometry);
       }
+
+      // Set as current position (whatever geometry coming in)
+      this.currentPosition = {
+        lat: geometry.lat,
+        lng: geometry.lng
+      };
 
       // Push to markers array
       this.markers.push(marker);
@@ -284,7 +291,7 @@ export default {
       this.markers = [];
     },
 
-    currentLocation() {
+    userLocation() {
       navigator.geolocation.getCurrentPosition(
         position => {
           this.currentPosition = {
@@ -300,7 +307,7 @@ export default {
           this.setMarkerAndPanTo(this.currentPosition, null);
 
           // Save current location to firestore
-          // this.saveCurrentLocation(this.currentPosition);
+          // this.saveUserLocation(this.currentPosition);
         },
         error => {
           this.handleLocationError(true, this.infoWindow, this.map.getCenter());
@@ -313,7 +320,7 @@ export default {
       }
     },
 
-    saveCurrentLocation(position) {
+    saveUserLocation(position) {
       console.log(`Current Position, `, position);
       this.$firestore
         .collection("users")
