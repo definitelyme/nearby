@@ -80,6 +80,7 @@ export default {
           .collection("users")
           .doc(user.uid)
           .set({
+            uid: user.uid,
             name: this.form.name,
             email: user.email,
             active: false
