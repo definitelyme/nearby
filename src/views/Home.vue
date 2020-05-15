@@ -174,14 +174,7 @@ export default {
       // lat: 6.474986,
       searchString: "",
       isSearching: false,
-      nearby__items: [
-        "Hospital",
-        "Restaurant",
-        "Bank",
-        "Cafe",
-        "School",
-        "Airport"
-      ],
+      nearby__items: [],
       nearby: "", // Nearby value
       willSearchNearby: false,
       response: null, // Response from the server for any request
@@ -385,12 +378,25 @@ export default {
         };
         x.send();
       });
+    },
+
+    getNearbyTypes() {
+      this.$firestore
+        .collection("defaults")
+        .doc("nearby_types")
+        .get()
+        .then(data => (this.nearby__items = data.data().data));
     }
   },
+
   mixins: [userMixin],
 
   mounted() {
     this.startMap();
+  },
+
+  created() {
+    this.getNearbyTypes();
   }
 };
 </script>

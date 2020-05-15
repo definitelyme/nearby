@@ -1,6 +1,6 @@
 module.exports = {
   "pwa": {
-    "name": "Locator",
+    "name": "Nearby",
     "themeColor": "#546E7A",
     "msTileColor": "#26A69A",
     "manifestOptions": {
