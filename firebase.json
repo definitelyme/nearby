@@ -5,7 +5,7 @@
   },
   "hosting": {
     "public": "public",
-    "site": "nearby-test",
+    "site": "locate-it",
     "ignore": [
       "firebase.json",
       "**/.*",
