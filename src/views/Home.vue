@@ -366,7 +366,6 @@ export default {
     get(url) {
       var x = new XMLHttpRequest();
       x.open("GET", url);
-      // I put "XMLHttpRequest" here, but you can use anything you want.
       x.setRequestHeader("X-Requested-With", "XMLHttpRequest");
       x.setRequestHeader("Access-Control-Allow-Origin", "*");
       return new Promise((resolve, reject) => {
