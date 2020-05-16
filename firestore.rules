@@ -9,5 +9,9 @@ service cloud.firestore {
     	allow read: if request.auth.uid == uid;
       allow write: if false;
     }
+    
+    match /defaults/{document=**} {
+    	allow read: if true;
+    }
   }
 }
