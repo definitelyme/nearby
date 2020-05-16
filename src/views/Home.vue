@@ -58,7 +58,7 @@
             v-model="searchString"
             @keyup="findPlace()"
             @keydown.enter="findPlace()"
-            @click:clear="isSearching = false"
+            @click:clear="isTyping = false"
           ></v-text-field>
           <v-spacer></v-spacer>
           <v-btn icon @click="userLocation">
@@ -80,7 +80,7 @@
             v-model="searchString"
             @keyup="findPlace()"
             @keydown.enter="findPlace()"
-            @click:clear="isSearching = false"
+            @click:clear="isTyping = false"
           ></v-text-field>
           <v-spacer></v-spacer>
 
@@ -92,7 +92,7 @@
           </v-btn>
         </v-toolbar>
 
-        <v-list color="grey lighten-4" elevation="0" dense flat tile v-show="isSearching">
+        <v-list color="grey lighten-4" elevation="0" dense flat tile v-show="isTyping">
           <v-list-item
             v-for="(item, index) in candidates"
             :key="index+item.name"
@@ -121,7 +121,13 @@
             </v-list-item-content>
           </v-list-item>
 
-          <v-list-item v-if="candidates == null">
+          <v-list-item v-show="isTyping && (responseError == null || responseError == '')">
+            <v-list-item-content>
+              <v-progress-linear indeterminate color="teal"></v-progress-linear>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item v-show="candidates == null && (responseError != null || responseError != '')">
             <v-list-item-content>
               <v-list-item-title>No Results found!</v-list-item-title>
             </v-list-item-content>
@@ -138,9 +144,24 @@
       />
 
       <!-- My Location Icon -->
-      <v-card-text style="position: absolute; bottom: 35%;" class="pa-0" @click="userLocation">
+      <v-card-text class="pa-0 my-location">
+        <v-slider
+          v-model="radius.current"
+          height="20"
+          step="50"
+          :min="radius.min"
+          :max="radius.max"
+          ticks
+          dense
+          vertical
+          thumb-label
+          class="radius-slider"
+          thumb-color="#e60000"
+          track-fill-color="#e60000"
+          track-color="secondary"
+        ></v-slider>
         <v-fab-transition>
-          <v-btn absolute fab top right>
+          <v-btn absolute fab top right @click="userLocation">
             <v-icon>my_location</v-icon>
           </v-btn>
         </v-fab-transition>
@@ -173,20 +194,22 @@ export default {
       // lng: 3.207347,
       // lat: 6.474986,
       searchString: "",
-      isSearching: false,
-      nearby__items: [],
+      isTyping: false, // Checks if user is typing
+      nearby__items: [], // Place types retrieved from firestore
       nearby: "", // Nearby value
-      willSearchNearby: false,
+      willSearchNearby: false, // Determines if search should be performed nearby
       candidates: [], // Represents list of Places returned by search
-      nearby_results: [],
+      nearby_results: [], // Reaults received from selecting a Place type [e.g hospital, airport]
+      responseError: null,
       currentPosition: {
+        // Current Marker Position
         lat: 6.537216,
         lng: 3.3292287999999997
       },
-      map: null,
-      marker: null,
-      markers: [],
-      zoom: 15,
+      radius: {},
+      map: null, // Map instance
+      markers: [], // List of Markers on Map instance
+      zoom: 14, // Zoom level
       infoWindow: null
       // geocoder: null
     };
@@ -195,10 +218,10 @@ export default {
     url() {
       var proxyUrl = "https://morning-mountain-19254.herokuapp.com/";
       const API_KEY = process.env.VUE_APP_PLACES_KEY;
-      const RADIUS = `300`;
+      var radius = this.radius.current.toString();
       const INPUT_TYPES =
         "textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry";
-      const LOCATION_BIAS = `circle:${RADIUS}@${this.currentPosition.lat},${this.currentPosition.lng}`;
+      const LOCATION_BIAS = `circle:${radius}@${this.currentPosition.lat},${this.currentPosition.lng}`;
 
       if (this.willSearchNearby) {
         // Serialize url to query
@@ -206,9 +229,8 @@ export default {
           proxyUrl +
           `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${
             this.currentPosition.lat
-          },${
-            this.currentPosition.lng
-          }&radius=${RADIUS}&type=${this.nearby.toLowerCase()}&keyword=${
+          },${this.currentPosition.lng}&radius=${"" +
+            radius}&type=${this.nearby.toLowerCase()}&keyword=${
             this.searchString
           }&key=${API_KEY}`
         );
@@ -255,30 +277,43 @@ export default {
       this.map.setCenter(geometry);
       this.map.panTo(geometry);
 
-      if (marker == null) {
-        // If marker == null, create a new marker
-        marker = new google.maps.Marker({
-          // position: this.currentPosition,
-          map: this.map
-        });
-
-        // Set marker on map
-        this.setMarkerOnMap(geometry);
-      }
-
       // Set as current position (whatever geometry coming in)
       this.currentPosition = {
         lat: geometry.lat,
         lng: geometry.lng
       };
 
+      if (marker == null) {
+        // If marker == null, create a new marker
+        marker = new google.maps.Marker({
+          position: geometry,
+          draggable: true,
+          animation: google.maps.Animation.DROP,
+          map: this.map
+        });
+      }
+
+      marker.addListener("click", () => {
+        if (marker.getAnimation() !== null) {
+          marker.setAnimation(null);
+        } else {
+          marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+      });
+
       // Push to markers array
       this.markers.push(marker);
+
+      // Set marker on map
+      this.setMarkerOnMap(geometry);
+
+      this.isTyping = false;
     },
 
     setMarkerOnMap(geometry) {
       this.markers.map(marker => {
         if (geometry == null) {
+          marker.setAnimation(null);
           marker.setMap(null);
           return;
         }
@@ -299,11 +334,7 @@ export default {
             lng: position.coords.longitude
           };
 
-          // this.infoWindow.setPosition(this.currentPosition);
-          // this.infoWindow.setContent("Location found.");
-          // this.infoWindow.open(this.map);
-          // this.infoWindow.setPosition(this.currentPosition);
-          // this.clearMarkers();
+          this.clearMarkers();
           this.setMarkerAndPanTo(this.currentPosition, null);
 
           // Save current location to firestore
@@ -343,12 +374,12 @@ export default {
     findPlace() {
       this.$nextTick(() => {
         // Pop search outputs
-        this.isSearching =
+        this.isTyping =
           this.searchString == null || this.searchString == "" ? false : true;
 
         this.get(this.url)
           .then(data => (this.candidates = data.candidates))
-          .catch(e => console.log(e));
+          .catch(e => this.responseError = e);
         // Museum of Contemporary Art Australia
       });
     },
@@ -361,13 +392,18 @@ export default {
           results.forEach(candidate => {
             var newMarker = new google.maps.Marker({
               position: candidate.geometry.location,
+              // label: labels[labelIndex++ % labels.length],
               map: this.map
             });
-            this.setMarkerAndPanTo(candidate.geometry.location, newMarker);
-            // this.setMarkerOnMap(this.map);
+            // Pan map
+            this.map.panTo(candidate.geometry.location);
+            // Push to Markers array
+            this.markers.push(newMarker);
           });
+          // Zoom out map
+          this.map.setZoom(11);
         })
-        .catch(e => console.log(e));
+        .catch(e => this.responseError = e);
     },
 
     get(url) {
@@ -386,12 +422,19 @@ export default {
       });
     },
 
-    getNearbyTypes() {
+    getDefaults() {
       this.$firestore
         .collection("defaults")
         .doc("nearby_types")
         .get()
-        .then(data => (this.nearby__items = data.data().data));
+        .then(data => {
+          this.nearby__items = data.data().place_types;
+          this.radius = data.data().radius;
+        });
+    },
+
+    droppedPin(map, location) {
+      //
     }
   },
 
@@ -402,7 +445,7 @@ export default {
   },
 
   created() {
-    this.getNearbyTypes();
+    this.getDefaults();
   }
 };
 </script>
@@ -422,7 +465,15 @@ export default {
   z-index: 4;
   margin-right: 10% !important;
 }
-
+.my-location {
+  position: absolute;
+  bottom: 35%;
+  width: auto;
+  right: 0px;
+}
+.radius-slider {
+  margin-right: 100px;
+}
 /* @media only screen and (min-width: 320px) and (max-width: 641px) {
   .nearby-selector{
     bottom: 8%;

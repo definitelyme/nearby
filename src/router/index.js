@@ -1,6 +1,5 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
 import firebase from "../foundation/firebase-init";
 
 Vue.use(VueRouter);
@@ -8,7 +7,8 @@ Vue.use(VueRouter);
 const routes = [{
     path: "/",
     name: "home",
-    component: Home,
+    component: () =>
+      import ("../views/Home.vue"),
     meta: {
       requiresAuth: true,
     },
@@ -17,7 +17,8 @@ const routes = [{
   {
     path: "/admin/u/0",
     name: "admin",
-    component: () => "../views/admin/index.vue",
+    component: () =>
+      import ("../views/admin/index.vue"),
     meta: {
       requiresAuth: true,
     },
